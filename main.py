@@ -11,7 +11,13 @@ from parser import *
 from data_loader import *
 # from model import *
 
-import matplotlib.pyplot as plt
+if torch.cuda.is_available():
+  dev = "cuda:0"
+else:
+  dev = "cpu"
+
+device = torch.device(dev)
+
 parser = parser()
 args = parser.parse_args()
 
@@ -78,6 +84,7 @@ for fold_num in range(1,2):
                  nn.ReLU(inplace=True),]
 
     model = nn.Sequential(*feature_layers, *fc_layers)
+    model.to(device)
     optimizer = torch.optim.Adam(model.parameters())
     criterion = nn.MSELoss()
     for epoch in range(200):  # loop over the dataset multiple times
