@@ -49,7 +49,7 @@ class ODEBlock(nn.Module):
     def forward(self, inputs):
 
         integration_time = torch.tensor(np.asarray([np.linspace(0, 27, 28), np.linspace(1, 28, 28)]).T).type(dtype)
-        integration_time = torch.cat((integration_time, torch.tensor([[28,42]])),0)
+        integration_time = torch.cat((integration_time, torch.tensor([[28,42]]).type(dtype)),0)
         hx = torch.randn(inputs.shape[0], 32)
 
         output = []
