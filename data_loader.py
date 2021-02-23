@@ -17,7 +17,8 @@ class my_dataset(torch.utils.data.Dataset):
         return self.x[idx], self.y[idx]
 
 class data_loader:
-    def __init__(self, args, fold):
+    def __init__(self, args, dtype = 'torch.FloatTensor', fold= 1):
+        self.dtype = dtype
         self.fold = fold
         self.args = args
         self.directory = args.Root + str(args.Gamma) + '/fold' + str(fold) + '/'
@@ -58,10 +59,10 @@ class data_loader:
         assert (x_train.shape[0] == y_train.shape[0])
         assert (x_test.shape[0] == y_test.shape[0])
 
-        x_train = torch.from_numpy(x_train).type(torch.FloatTensor)
-        y_train = torch.from_numpy(y_train).type(torch.FloatTensor)
-        x_test = torch.from_numpy(x_test).type(torch.FloatTensor)
-        y_test = torch.from_numpy(y_test).type(torch.FloatTensor)
+        x_train = torch.from_numpy(x_train).type(self.dtype)
+        y_train = torch.from_numpy(y_train).type(self.dtype)
+        x_test = torch.from_numpy(x_test).type(self.dtype)
+        y_test = torch.from_numpy(y_test).type(self.dtype)
 
         return my_dataset(x_train, y_train), my_dataset(x_test, y_test)
 

@@ -73,7 +73,7 @@ class ODEBlock(nn.Module):
 
 results = pd.DataFrame(index = ['CRPS','NLL','MAE','RMSE','SMAPE','Corr','MB Log','SDP'])
 for fold_num in range(1,2):
-    data = data_loader(args, fold=fold_num)
+    data = data_loader(args, dtyoe=dtype, fold=fold_num)
 
     train, test = data.build()
 
