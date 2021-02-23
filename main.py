@@ -12,11 +12,12 @@ from data_loader import *
 # from model import *
 
 if torch.cuda.is_available():
-  dev = "cuda:0"
+  dev = torch.device("cuda:0")
+  torch.set_default_tensor_type('torch.cuda.FloatTensor')
 else:
-  dev = "cpu"
+  dev = torch.device("cpu")
 
-device = torch.device(dev)
+
 
 parser = parser()
 args = parser.parse_args()
@@ -40,19 +41,22 @@ class ODEfunc(nn.Module):
 class ODEBlock(nn.Module):
     def __init__(self, odefunc, dim):
         super(ODEBlock, self).__init__()
-        self.odefunc = ODEfunc(32)
+        self.odefunc = odefunc(32)
         self.L1 = nn.GRUCell(dim, 32)
         self.activation = nn.ReLU()
 
     def forward(self, inputs):
 
-        integration_time = torch.tensor(np.asarray([np.linspace(0, 27, 28), np.linspace(1, 28, 28)]).T).float()
+        integration_time = torch.tensor(np.asarray([np.linspace(0, 27, 28), np.linspace(1, 28, 28)]).T)
+        integration_time = torch.cat((integration_time, torch.tensor([[28,42]])),0)
         hx = torch.randn(inputs.shape[0], 32)
 
         output = []
+
+        hx = odeint(self.odefunc, hx, integration_time[0], rtol=args.tol, atol=args.tol)
         for i in range(inputs.shape[1]):
-            hx = odeint(self.odefunc, hx, integration_time[i], rtol=args.tol, atol=args.tol)
             hx = self.L1(inputs[:,i,:], hx[-1])
+            hx = odeint(self.odefunc, hx, integration_time[i+1], rtol=args.tol, atol=args.tol)
             output.append(hx)
 
         output = self.activation(output[-1])
