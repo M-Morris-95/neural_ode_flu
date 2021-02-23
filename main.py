@@ -82,13 +82,13 @@ for fold_num in range(1,2):
     testloader = torch.utils.data.DataLoader(test, batch_size=32,
                                              shuffle=False)
 
-    feature_layers = [ODEBlock(ODEfunc(32), 176)]
+    feature_layers = [ODEBlock(ODEfunc, 176)]
     fc_layers = [nn.BatchNorm1d(32),
                  nn.Linear(32, 1),
                  nn.ReLU(inplace=True),]
 
     model = nn.Sequential(*feature_layers, *fc_layers)
-    model.to(device)
+    model.to(dev)
     optimizer = torch.optim.Adam(model.parameters())
     criterion = nn.MSELoss()
     for epoch in range(200):  # loop over the dataset multiple times
