@@ -11,13 +11,7 @@ from parser import *
 from data_loader import *
 # from model import *
 
-if torch.cuda.is_available():
-    dev = torch.device("cuda:0")
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
-    dtype = 'torch.cuda.FloatTensor'
-else:
-    dev = torch.device("cpu")
-    dtype = 'torch.FloatTensor'
+
 
 
 parser = parser()
@@ -60,6 +54,8 @@ class ODEBlock(nn.Module):
             hx = odeint(self.odefunc, hx, integration_time[i+1], rtol=args.tol, atol=args.tol)
             output.append(hx[-1])
 
+
+
         output = self.activation(output[-1])
         return output
 
@@ -72,6 +68,15 @@ class ODEBlock(nn.Module):
         self.odefunc.nfe = value
 
 results = pd.DataFrame(index = ['CRPS','NLL','MAE','RMSE','SMAPE','Corr','MB Log','SDP'])
+if torch.cuda.is_available():
+    dev = torch.device("cuda:0")
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    dtype = 'torch.cuda.FloatTensor'
+else:
+    dev = torch.device("cpu")
+    dtype = 'torch.FloatTensor'
+
+print('Running on ', dev)
 for fold_num in range(1,2):
     data = data_loader(args, dtype=dtype, fold=fold_num)
 
@@ -94,6 +99,7 @@ for fold_num in range(1,2):
     criterion = nn.MSELoss()
     for epoch in range(200):  # loop over the dataset multiple times
         running_loss = 0.0
+        start = time.time()
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data
 
@@ -109,8 +115,20 @@ for fold_num in range(1,2):
             # print statistics
             # running_loss += loss.item()
 
+            running_time = time.time() - start
+            time_per_batch = running_time / (i+1)
+            time_left = time_per_batch * (trainloader.__len__()-i)
             running_loss = (i) / (i+1) * running_loss + loss.item() / (i+1)
-            print('epoch: %d, batch: %d, loss: %.3f' % (epoch + 1, i+1, running_loss), end = '\r')
+            frac_done = int(20*(i / trainloader.__len__())) + 1
+            progress_bar = '[' + '='*frac_done + ' '*(20-frac_done) + ']'
+
+            print('epoch: %d, %d/%d %s s so far: %.1f, s left: %.1f loss: %.3f' % (epoch + 1,
+                                                    i+1,
+                                                    trainloader.__len__(),
+                                                    progress_bar,
+                                                    running_time,
+                                                    time_left,
+                                                    running_loss), end = '\r')
         print('')
         # print('epoch: %d, batch: %d, loss: %.3f' % (epoch + 1, i + 1, running_loss))
 
