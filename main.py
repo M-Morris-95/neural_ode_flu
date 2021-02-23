@@ -58,7 +58,7 @@ class ODEBlock(nn.Module):
         for i in range(inputs.shape[1]):
             hx = self.L1(inputs[:,i,:], hx[-1])
             hx = odeint(self.odefunc, hx, integration_time[i+1], rtol=args.tol, atol=args.tol)
-            output.append(hx)
+            output.append(hx[-1])
 
         output = self.activation(output[-1])
         return output
@@ -73,7 +73,7 @@ class ODEBlock(nn.Module):
 
 results = pd.DataFrame(index = ['CRPS','NLL','MAE','RMSE','SMAPE','Corr','MB Log','SDP'])
 for fold_num in range(1,2):
-    data = data_loader(args, dtyoe=dtype, fold=fold_num)
+    data = data_loader(args, dtype=dtype, fold=fold_num)
 
     train, test = data.build()
 
